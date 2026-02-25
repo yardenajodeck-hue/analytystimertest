@@ -1,0 +1,2202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer Pomodoro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg-primary: white;
+            --bg-secondary: #f8f9fb;
+            --bg-tertiary: #f0f4ff;
+            --text-primary: #0f3a7d;
+            --text-secondary: #4a5568;
+            --border-color: #e8ecf1;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode {
+            --bg-primary: #1a1f2e;
+            --bg-secondary: #243142;
+            --bg-tertiary: #2a3748;
+            --text-primary: #e0e7ff;
+            --text-secondary: #cbd5e1;
+            --border-color: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            transition: background 0.3s ease;
+        }
+
+        .container {
+            background: var(--bg-primary);
+            padding: 50px 60px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px var(--shadow-color), 0 0 0 1px var(--border-color);
+            text-align: center;
+            max-width: 1000px;
+            width: 100%;
+            margin: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .dark-mode-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        .dark-mode-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        h1 {
+            color: var(--text-primary);
+            margin-bottom: 50px;
+            font-size: 2.8em;
+            font-weight: 700;
+            letter-spacing: -0.8px;
+        }
+
+        .config-section {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            margin-bottom: 45px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .config-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .config-group label {
+            font-size: 0.95em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .config-group input {
+            width: 100px;
+            padding: 12px 14px;
+            font-size: 1.1em;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .config-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .default-time-inputs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .time-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .time-input label {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .time-input input {
+            width: 75px;
+            padding: 10px 12px;
+            font-size: 1.1em;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .time-input input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .time-input input:focus {
+            outline: none;
+            border-color: #1a1a1a;
+            box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .btn-apply {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-apply:active {
+            transform: translateY(0);
+        }
+
+        .timers-config {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 45px;
+        }
+
+        .timer-config {
+            background: var(--bg-primary);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .timer-config:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .timer-config.disabled {
+            opacity: 0.5;
+            background: #f8f9fb;
+        }
+
+        .timer-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .timer-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #3b82f6;
+        }
+
+        .timer-config h3 {
+            color: var(--text-primary);
+            font-size: 1.15em;
+            margin: 0;
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .btn-delete {
+            background: white;
+            color: #ef4444;
+            border: 2px solid #fecaca;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.9em;
+            padding: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .btn-delete:hover {
+            background: #fee2e2;
+            border-color: #ef4444;
+            transform: scale(1.15);
+        }
+
+        .time-inputs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-add-timer {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 45px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-add-timer:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .current-timer-info {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.3em;
+            color: #4a5568;
+            font-weight: 600;
+            background: #f0f4ff;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .timers-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 50px;
+            padding: 0;
+            background: transparent;
+            border-radius: 0;
+        }
+
+        .timer-card {
+            background: var(--bg-primary);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .timer-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+        }
+
+        .timer-card.active {
+            border: 2px solid #3b82f6;
+            background: #f0f4ff;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+        }
+
+        .timer-card.pause {
+            border: 2px solid #f59e0b;
+            background: #fffbf0;
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.15);
+        }
+
+        .timer-card.completed {
+            border-color: #d1d5db;
+            background: #f9fafb;
+            opacity: 0.7;
+        }
+
+        .timer-number {
+            font-size: 0.85em;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .timer-time {
+            font-size: 2em;
+            color: var(--text-primary);
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .timer-status {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .timer-display {
+            font-size: 5.5em;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 50px 0 40px 0;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 3px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-pause {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-pause:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 40px;
+            font-size: 1.3em;
+            color: #4a5568;
+            min-height: 30px;
+            font-weight: 500;
+        }
+
+        .finished {
+            color: #10b981;
+            font-weight: 700 !important;
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { opacity: 1; }
+            to { opacity: 0.6; }
+        }
+
+        .warning {
+            color: #ef4444;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 40px;
+            justify-content: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn {
+            padding: 16px 32px;
+            font-size: 1.05em;
+            border: none;
+            border-bottom: 3px solid transparent;
+            border-radius: 0;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-btn.active {
+            color: var(--text-primary);
+            border-bottom-color: #3b82f6;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .exam-header {
+            margin-bottom: 30px;
+        }
+
+        .exam-tasks {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        .task-item {
+            background: var(--bg-primary);
+            padding: 18px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .task-item:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+
+        .task-input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .task-name {
+            flex: 1;
+            min-width: 180px;
+            padding: 12px 14px;
+            font-size: 1.05em;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .task-name:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .task-minutes, .task-seconds {
+            width: 85px;
+            padding: 10px;
+            font-size: 1.05em;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .task-minutes:focus, .task-seconds:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-delete-task {
+            background: white;
+            color: #ef4444;
+            border: 2px solid #fecaca;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.3em;
+            padding: 0;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-delete-task:hover {
+            background: #fee2e2;
+            border-color: #ef4444;
+            transform: scale(1.15);
+        }
+
+        .exam-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-save-exam, .btn-load-exam {
+            padding: 10px 20px;
+            font-size: 0.9em;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-save-exam:hover, .btn-load-exam:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .saved-configs {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .config-item {
+            background: var(--bg-primary);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .config-item:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+
+        .config-item button {
+            padding: 8px 16px;
+            font-size: 0.9em;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .config-item button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .config-item .delete-config {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .config-item .delete-config:hover {
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .exam-progress {
+            background: var(--bg-primary);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: none;
+            border: 1px solid var(--border-color);
+        }
+
+        .exam-progress.active {
+            display: block;
+        }
+
+        .progress-task {
+            margin-bottom: 25px;
+            padding: 16px;
+            background: #f8f9fb;
+            border-radius: 8px;
+            border-left: 4px solid #e8ecf1;
+            transition: all 0.3s ease;
+        }
+
+        .progress-task.active {
+            background: #f0f4ff;
+            border-left-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+
+        .progress-task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .progress-task-name {
+            font-weight: 700;
+            color: #0f3a7d;
+            font-size: 1.1em;
+        }
+
+        .progress-task-time {
+            font-size: 1em;
+            color: #4a5568;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .progress-bar-container {
+            background: #e8ecf1;
+            border-radius: 8px;
+            height: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+            width: 100%;
+            transition: width 0.2s ease;
+        }
+
+        .progress-task.active .progress-bar-fill {
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .sound-settings {
+            background: #f8f9fb;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e8ecf1;
+            margin-top: 25px;
+        }
+
+        .sound-settings h3 {
+            color: #0f3a7d;
+            font-size: 1.1em;
+            margin: 0 0 15px 0;
+            font-weight: 600;
+        }
+
+        .sound-options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .sound-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sound-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #3b82f6;
+        }
+
+        .sound-option label {
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin: 0;
+            transition: color 0.3s ease;
+        }
+
+        .sound-option:hover label {
+            color: var(--text-primary);
+        }
+
+        .btn-test-sound {
+            padding: 10px 18px;
+            font-size: 1.4em;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+            min-height: 50px;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-test-sound:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.5);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        }
+
+        .btn-test-sound:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</button>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('timer')">⏲️ Timer</button>
+            <button class="tab-btn" onclick="switchTab('exam')">📝 Examen</button>
+        </div>
+
+        <div id="timerTab" class="tab-content active">
+            <div class="config-section" id="configSection">
+                <div class="config-group">
+                    <label>Duración por defecto</label>
+                    <div class="default-time-inputs">
+                        <div class="time-input">
+                            <label>Min</label>
+                            <input type="number" id="defaultMinutes" min="0" max="99" value="25">
+                        </div>
+                        <div class="time-input">
+                            <label>Seg</label>
+                            <input type="number" id="defaultSeconds" min="0" max="59" value="0">
+                        </div>
+                    </div>
+                    <button class="btn-apply" onclick="applyDefaultToAll()">Aplicar a todos</button>
+                </div>
+                <div class="config-group">
+                    <label>Pausa</label>
+                    <div class="default-time-inputs">
+                        <div class="time-input">
+                            <label>Min</label>
+                            <input type="number" id="pauseMinutes" min="0" max="59" value="0">
+                        </div>
+                        <div class="time-input">
+                            <label>Seg</label>
+                            <input type="number" id="pauseSeconds" min="0" max="59" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sound-settings">
+                <h3>🔊 Tipo de Sonido</h3>
+                <div class="sound-options">
+                    <div class="sound-option">
+                        <input type="radio" id="sound1" name="soundType" value="beep" checked>
+                        <label for="sound1">Beep (Electrónico)</label>
+                    </div>
+                    <div class="sound-option">
+                        <input type="radio" id="sound2" name="soundType" value="bell">
+                        <label for="sound2">Campana</label>
+                    </div>
+                    <div class="sound-option">
+                        <input type="radio" id="sound3" name="soundType" value="chime">
+                        <label for="sound3">Carillón</label>
+                    </div>
+                    <div class="sound-option">
+                        <input type="radio" id="sound4" name="soundType" value="alert">
+                        <label for="sound4">Alerta</label>
+                    </div>
+                    <div class="sound-option">
+                        <input type="radio" id="sound5" name="soundType" value="silent">
+                        <label for="sound5">Silencio</label>
+                    </div>
+                </div>
+                <button class="btn-test-sound" id="playTestSound" onclick="testCurrentSound()">🔊</button>
+            </div>
+                <button class="btn-start" id="startBtn" onclick="startSequence()">Iniciar</button>
+                <button class="btn-pause" id="pauseBtn" onclick="pauseTimer()" disabled>Pausar</button>
+                <button class="btn-reset" id="resetBtn" onclick="resetTimer()">Reiniciar</button>
+            </div>
+
+            <div class="timers-config" id="timersConfig">
+            <div class="timer-config">
+                <div class="timer-header">
+                    <input type="checkbox" class="timer-checkbox" checked data-index="0">
+                    <h3>Timer 1</h3>
+                    <button class="btn-delete" onclick="deleteTimer(0)" style="display: none;">✕</button>
+                </div>
+                <div class="time-inputs">
+                    <div class="time-input">
+                        <label>Min</label>
+                        <input type="number" class="timer-minutes" min="0" max="99" value="25">
+                    </div>
+                    <div class="time-input">
+                        <label>Seg</label>
+                        <input type="number" class="timer-seconds" min="0" max="59" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="timer-config">
+                <div class="timer-header">
+                    <input type="checkbox" class="timer-checkbox" checked data-index="1">
+                    <h3>Timer 2</h3>
+                    <button class="btn-delete" onclick="deleteTimer(1)" style="display: none;">✕</button>
+                </div>
+                <div class="time-inputs">
+                    <div class="time-input">
+                        <label>Min</label>
+                        <input type="number" class="timer-minutes" min="0" max="99" value="5">
+                    </div>
+                    <div class="time-input">
+                        <label>Seg</label>
+                        <input type="number" class="timer-seconds" min="0" max="59" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="timer-config">
+                <div class="timer-header">
+                    <input type="checkbox" class="timer-checkbox" checked data-index="2">
+                    <h3>Timer 3</h3>
+                    <button class="btn-delete" onclick="deleteTimer(2)" style="display: none;">✕</button>
+                </div>
+                <div class="time-inputs">
+                    <div class="time-input">
+                        <label>Min</label>
+                        <input type="number" class="timer-minutes" min="0" max="99" value="25">
+                    </div>
+                    <div class="time-input">
+                        <label>Seg</label>
+                        <input type="number" class="timer-seconds" min="0" max="59" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="timer-config">
+                <div class="timer-header">
+                    <input type="checkbox" class="timer-checkbox" checked data-index="3">
+                    <h3>Timer 4</h3>
+                    <button class="btn-delete" onclick="deleteTimer(3)" style="display: none;">✕</button>
+                </div>
+                <div class="time-inputs">
+                    <div class="time-input">
+                        <label>Min</label>
+                        <input type="number" class="timer-minutes" min="0" max="99" value="5">
+                    </div>
+                    <div class="time-input">
+                        <label>Seg</label>
+                        <input type="number" class="timer-seconds" min="0" max="59" value="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-add-timer" onclick="addTimer()">+ Agregar Timer</button>
+
+        <div class="current-timer-info" id="currentTimer" style="display: none;">
+            <p id="timerLabel">Timer 1</p>
+        </div>
+
+        <div class="timers-display" id="timersDisplay">
+            <div class="timer-card" id="timerCard0">
+                <div class="timer-number">1</div>
+                <div class="timer-time">25:00</div>
+                <div class="timer-status">Configurado</div>
+            </div>
+            <div class="timer-card" id="timerCard1">
+                <div class="timer-number">2</div>
+                <div class="timer-time">05:00</div>
+                <div class="timer-status">Configurado</div>
+            </div>
+            <div class="timer-card" id="timerCard2">
+                <div class="timer-number">3</div>
+                <div class="timer-time">25:00</div>
+                <div class="timer-status">Configurado</div>
+            </div>
+            <div class="timer-card" id="timerCard3">
+                <div class="timer-number">4</div>
+                <div class="timer-time">05:00</div>
+                <div class="timer-status">Configurado</div>
+            </div>
+        </div>
+
+        <div class="timer-display" id="timerDisplay">25:00</div>
+
+        <div class="status" id="status"></div>
+        </div>
+
+        <div id="examTab" class="tab-content">
+            <div class="config-section exam-header">
+                <div class="config-group">
+                    <label for="examTitle">Título del Examen</label>
+                    <input type="text" id="examTitle" placeholder="Ej: Matemáticas" value="">
+                </div>
+            </div>
+
+            <div class="timer-display" id="examTimerDisplay" style="display: none;">00:00</div>
+
+            <div class="controls" style="margin-bottom: 30px; display: none;" id="examControls">
+                <button class="btn-start" id="startExamBtn" onclick="startExam()">Iniciar</button>
+                <button class="btn-pause" id="pauseExamBtn" onclick="pauseExam()" disabled>Pausar</button>
+                <button class="btn-reset" id="resetExamBtn" onclick="resetExam()">Reiniciar</button>
+            </div>
+
+            <div class="exam-tasks" id="examTasks">
+                <div class="task-item">
+                    <div class="task-input-group">
+                        <input type="text" class="task-name" placeholder="Nombre de la task" value="Task 1">
+                        <div class="time-inputs">
+                            <div class="time-input">
+                                <label>Min</label>
+                                <input type="number" class="task-minutes" min="0" max="99" value="5">
+                            </div>
+                            <div class="time-input">
+                                <label>Seg</label>
+                                <input type="number" class="task-seconds" min="0" max="59" value="0">
+                            </div>
+                        </div>
+                        <button class="btn-delete-task" onclick="deleteTask(0)">✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-add-timer" onclick="addTask()">+ Agregar Task</button>
+
+            <div class="exam-actions">
+                <button class="btn-save-exam" onclick="saveExamConfig()">💾 Guardar Configuración</button>
+                <button class="btn-load-exam" onclick="showLoadOptions()">📂 Cargar Configuración</button>
+            </div>
+
+            <div id="loadOptionsDiv" style="display: none; margin-top: 20px;">
+                <label>Configuraciones guardadas:</label>
+                <div id="savedConfigs" class="saved-configs"></div>
+            </div>
+
+            <div class="exam-progress" id="examProgress">
+                <div id="examProgressTasks"></div>
+            </div>
+
+            <div class="status" id="examStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        let timers = [
+            { minutes: 25, seconds: 0 },
+            { minutes: 5, seconds: 0 },
+            { minutes: 25, seconds: 0 },
+            { minutes: 5, seconds: 0 }
+        ];
+
+        let timerStates = [
+            { total: 25 * 60, remaining: 25 * 60, status: 'configurado', enabled: true },
+            { total: 5 * 60, remaining: 5 * 60, status: 'configurado', enabled: true },
+            { total: 25 * 60, remaining: 25 * 60, status: 'configurado', enabled: true },
+            { total: 5 * 60, remaining: 5 * 60, status: 'configurado', enabled: true }
+        ];
+        
+        let pauseTime = 5;
+        let remainingSeconds = 0;
+        let timerInterval = null;
+        let isRunning = false;
+        let currentTimerIndex = 0;
+        let isPause = false;
+        let isStopped = false;
+
+        // Variables para examen
+        let examTasks = [{ name: 'Task 1', minutes: 5, seconds: 0 }];
+        let examRunning = false;
+        let currentExamTaskIndex = -1;
+        let examIsPaused = false;
+
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const configSection = document.getElementById('configSection');
+        const timersConfig = document.getElementById('timersConfig');
+        const currentTimerInfo = document.getElementById('currentTimer');
+        const timerLabel = document.getElementById('timerLabel');
+        const statusDiv = document.getElementById('status');
+        const pauseMinutesInput = document.getElementById('pauseMinutes');
+        const pauseSecondsInput = document.getElementById('pauseSeconds');
+        const timersDisplay = document.getElementById('timersDisplay');
+        const defaultMinutesInput = document.getElementById('defaultMinutes');
+        const defaultSecondsInput = document.getElementById('defaultSeconds');
+        const examTab = document.getElementById('examTab');
+        const timerTab = document.getElementById('timerTab');
+        const examTitle = document.getElementById('examTitle');
+        const examTasks_div = document.getElementById('examTasks');
+        const startExamBtn = document.getElementById('startExamBtn');
+        const pauseExamBtn = document.getElementById('pauseExamBtn');
+        const resetExamBtn = document.getElementById('resetExamBtn');
+        const examStatus = document.getElementById('examStatus');
+
+        pauseMinutesInput.addEventListener('change', () => {
+            pauseTime = (parseInt(pauseMinutesInput.value) || 0) * 60 + (parseInt(pauseSecondsInput.value) || 0);
+        });
+
+        pauseSecondsInput.addEventListener('change', () => {
+            pauseTime = (parseInt(pauseMinutesInput.value) || 0) * 60 + (parseInt(pauseSecondsInput.value) || 0);
+        });
+
+        function addTimer() {
+            const newIndex = timers.length;
+            timers.push({ minutes: 0, seconds: 0 });
+            timerStates.push({ total: 0, remaining: 0, status: 'configurado', enabled: true });
+
+            const timerConfig = document.createElement('div');
+            timerConfig.className = 'timer-config';
+            timerConfig.innerHTML = `
+                <div class="timer-header">
+                    <input type="checkbox" class="timer-checkbox" checked data-index="${newIndex}">
+                    <h3>Timer ${newIndex + 1}</h3>
+                    <button class="btn-delete" onclick="deleteTimer(${newIndex})">✕</button>
+                </div>
+                <div class="time-inputs">
+                    <div class="time-input">
+                        <label>Min</label>
+                        <input type="number" class="timer-minutes" min="0" max="99" value="0">
+                    </div>
+                    <div class="time-input">
+                        <label>Seg</label>
+                        <input type="number" class="timer-seconds" min="0" max="59" value="0">
+                    </div>
+                </div>
+            `;
+
+            timersConfig.appendChild(timerConfig);
+
+            timerConfig.querySelectorAll('.timer-minutes, .timer-seconds').forEach(input => {
+                input.addEventListener('change', updateTimerValues);
+            });
+
+            timerConfig.querySelector('.timer-checkbox').addEventListener('change', updateTimerValues);
+
+            const timerCard = document.createElement('div');
+            timerCard.className = 'timer-card';
+            timerCard.id = `timerCard${newIndex}`;
+            timerCard.innerHTML = `
+                <div class="timer-number">${newIndex + 1}</div>
+                <div class="timer-time">00:00</div>
+                <div class="timer-status">Deshabilitado</div>
+            `;
+            timersDisplay.appendChild(timerCard);
+
+            updateDeleteButtons();
+            updateTimerValues();
+        }
+
+        function deleteTimer(index) {
+            if (timers.length <= 1) {
+                alert('Debes tener al menos un timer');
+                return;
+            }
+
+            timers.splice(index, 1);
+            timerStates.splice(index, 1);
+
+            const configs = document.querySelectorAll('.timer-config');
+            configs[index].remove();
+
+            const cards = document.querySelectorAll('.timer-card');
+            cards[index].remove();
+
+            updateCheckboxIndices();
+            updateDeleteButtons();
+            updateTimerValues();
+        }
+
+        function updateCheckboxIndices() {
+            const checkboxes = document.querySelectorAll('.timer-checkbox');
+            checkboxes.forEach((checkbox, index) => {
+                checkbox.setAttribute('data-index', index);
+            });
+        }
+
+        function getEnabledTimers() {
+            return timers
+                .map((timer, index) => ({ ...timer, index, enabled: timerStates[index].enabled }))
+                .filter(t => t.enabled);
+        }
+
+        function updateDeleteButtons() {
+            const deleteButtons = document.querySelectorAll('.btn-delete');
+            deleteButtons.forEach(btn => {
+                if (timers.length > 1) {
+                    btn.style.display = 'block';
+                } else {
+                    btn.style.display = 'none';
+                }
+            });
+        }
+
+        // Event listeners para actualizar tiempos
+        document.querySelectorAll('.timer-minutes, .timer-seconds').forEach(input => {
+            input.addEventListener('change', updateTimerValues);
+        });
+
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('timer-checkbox')) {
+                updateTimerValues();
+            }
+        });
+
+        pauseTimeInput.addEventListener('change', () => {
+            pauseTime = parseInt(pauseTimeInput.value) || 0;
+        });
+
+        function applyDefaultToAll() {
+            const defaultMin = parseInt(defaultMinutesInput.value) || 0;
+            const defaultSec = parseInt(defaultSecondsInput.value) || 0;
+
+            const timerConfigs = document.querySelectorAll('.timer-config');
+            timerConfigs.forEach((config) => {
+                config.querySelector('.timer-minutes').value = defaultMin;
+                config.querySelector('.timer-seconds').value = defaultSec;
+            });
+
+            updateTimerValues();
+        }
+
+        function updateTimerValues() {
+            const timerConfigs = document.querySelectorAll('.timer-config');
+            timerConfigs.forEach((config, index) => {
+                const minutes = parseInt(config.querySelector('.timer-minutes').value) || 0;
+                const seconds = parseInt(config.querySelector('.timer-seconds').value) || 0;
+                const isEnabled = config.querySelector('.timer-checkbox').checked;
+
+                timers[index] = { minutes, seconds };
+                const total = minutes * 60 + seconds;
+                timerStates[index] = { total, remaining: total, status: 'configurado', enabled: isEnabled };
+
+                if (!isEnabled) {
+                    config.classList.add('disabled');
+                } else {
+                    config.classList.remove('disabled');
+                }
+            });
+            updateTimersDisplay();
+        }
+
+        function updateDisplay() {
+            const mins = Math.floor(remainingSeconds / 60);
+            const secs = remainingSeconds % 60;
+            timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+            if (remainingSeconds < 60 && remainingSeconds > 0) {
+                timerDisplay.classList.add('warning');
+            } else {
+                timerDisplay.classList.remove('warning');
+            }
+        }
+
+        function updateTimersDisplay() {
+            for (let i = 0; i < timers.length; i++) {
+                const card = document.getElementById(`timerCard${i}`);
+                if (!card) continue;
+
+                const timeElement = card.querySelector('.timer-time');
+                const statusElement = card.querySelector('.timer-status');
+                const state = timerStates[i];
+
+                const mins = Math.floor(state.remaining / 60);
+                const secs = state.remaining % 60;
+                timeElement.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                card.classList.remove('active', 'pause', 'completed');
+
+                if (!state.enabled) {
+                    statusElement.textContent = 'Deshabilitado';
+                } else if (state.status === 'activo') {
+                    card.classList.add('active');
+                    statusElement.textContent = '▶ En curso';
+                } else if (state.status === 'pausa') {
+                    card.classList.add('pause');
+                    statusElement.textContent = '⏸ Pausa';
+                } else if (state.status === 'completado') {
+                    card.classList.add('completed');
+                    statusElement.textContent = '✓ Completado';
+                } else {
+                    statusElement.textContent = 'Configurado';
+                }
+            }
+        }
+
+        function startSequence() {
+            updateTimerValues();
+            pauseTime = (parseInt(pauseMinutesInput.value) || 0) * 60 + (parseInt(pauseSecondsInput.value) || 0);
+
+            const enabledTimers = getEnabledTimers();
+            if (enabledTimers.length === 0) {
+                statusDiv.textContent = '⚠️ Marca al menos un timer para ejecutar';
+                statusDiv.style.color = '#e74c3c';
+                return;
+            }
+
+            const hasValidTimer = enabledTimers.some(t => t.minutes > 0 || t.seconds > 0);
+            if (!hasValidTimer) {
+                statusDiv.textContent = '⚠️ Configura una duración válida';
+                statusDiv.style.color = '#e74c3c';
+                return;
+            }
+
+            isStopped = false;
+            currentTimerIndex = -1;
+            isRunning = true;
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            configSection.style.display = 'none';
+            timersConfig.style.display = 'none';
+            currentTimerInfo.style.display = 'block';
+            
+            for (let i = 0; i < timers.length; i++) {
+                const total = timers[i].minutes * 60 + timers[i].seconds;
+                timerStates[i].total = total;
+                timerStates[i].remaining = total;
+                timerStates[i].status = 'configurado';
+            }
+            updateTimersDisplay();
+            
+            startNextTimer();
+        }
+
+        function startNextTimer() {
+            if (isStopped) return;
+
+            const enabledTimers = getEnabledTimers();
+
+            // Buscar el siguiente timer habilitado
+            let found = false;
+            for (let i = currentTimerIndex + 1; i < timers.length; i++) {
+                if (timerStates[i].enabled) {
+                    currentTimerIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                isRunning = false;
+                allTimersFinished();
+                return;
+            }
+
+            const timer = timers[currentTimerIndex];
+            const totalSeconds = timer.minutes * 60 + timer.seconds;
+
+            if (totalSeconds === 0) {
+                timerStates[currentTimerIndex].status = 'completado';
+                updateTimersDisplay();
+                setTimeout(() => {
+                    startNextTimer();
+                }, 100);
+                return;
+            }
+
+            remainingSeconds = totalSeconds;
+            timerStates[currentTimerIndex].remaining = totalSeconds;
+            timerStates[currentTimerIndex].status = 'activo';
+            isPause = false;
+            timerLabel.textContent = `🔴 Timer ${currentTimerIndex + 1}`;
+            statusDiv.textContent = '⏳ Timer en curso...';
+            statusDiv.style.color = '#3498db';
+            updateDisplay();
+            updateTimersDisplay();
+
+            timerInterval = setInterval(() => {
+                if (!isStopped) {
+                    remainingSeconds--;
+                    timerStates[currentTimerIndex].remaining = remainingSeconds;
+                    updateDisplay();
+                    updateTimersDisplay();
+
+                    if (remainingSeconds === 0) {
+                        clearInterval(timerInterval);
+                        timerStates[currentTimerIndex].status = 'completado';
+                        updateTimersDisplay();
+                        playAlarm();
+                        setTimeout(() => {
+                            startPauseBeforeNext();
+                        }, 1500);
+                    }
+                }
+            }, 1000);
+        }
+
+        function startPauseBeforeNext() {
+            if (isStopped) return;
+
+            remainingSeconds = pauseTime;
+            isPause = true;
+            timerLabel.textContent = `⏸️ Pausa`;
+            statusDiv.textContent = `Pausa de ${pauseTime} segundos`;
+            statusDiv.style.color = '#f39c12';
+            updateDisplay();
+
+            timerInterval = setInterval(() => {
+                if (!isStopped) {
+                    remainingSeconds--;
+                    updateDisplay();
+
+                    if (remainingSeconds === 0) {
+                        clearInterval(timerInterval);
+                        playAlarm();
+                        setTimeout(() => {
+                            startNextTimer();
+                        }, 500);
+                    }
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+                statusDiv.textContent = '⏸️ Pausado';
+                statusDiv.style.color = '#f39c12';
+            } else {
+                isRunning = true;
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+                statusDiv.textContent = isPause ? '⏳ Pausa en curso...' : '⏳ Timer en curso...';
+                statusDiv.style.color = '#3498db';
+
+                const timerFunc = () => {
+                    if (!isStopped) {
+                        remainingSeconds--;
+                        if (!isPause) {
+                            timerStates[currentTimerIndex].remaining = remainingSeconds;
+                        }
+                        updateDisplay();
+                        updateTimersDisplay();
+
+                        if (remainingSeconds === 0) {
+                            clearInterval(timerInterval);
+                            if (!isPause) {
+                                timerStates[currentTimerIndex].status = 'completado';
+                            }
+                            updateTimersDisplay();
+                            playAlarm();
+                            setTimeout(() => {
+                                if (isPause) {
+                                    startNextTimer();
+                                } else {
+                                    startPauseBeforeNext();
+                                }
+                            }, 1500);
+                        }
+                    }
+                };
+
+                timerInterval = setInterval(timerFunc, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            isStopped = true;
+            currentTimerIndex = -1;
+            configSection.style.display = 'flex';
+            timersConfig.style.display = 'grid';
+            currentTimerInfo.style.display = 'none';
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            timerDisplay.classList.remove('warning');
+            updateTimerValues();
+            updateDisplay();
+            statusDiv.textContent = '';
+        }
+
+        function allTimersFinished() {
+            statusDiv.textContent = '✅ ¡¡Todos los timers terminados!!';
+            statusDiv.classList.add('finished');
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            configSection.style.display = 'flex';
+            timersConfig.style.display = 'grid';
+            currentTimerInfo.style.display = 'none';
+            timerLabel.textContent = '';
+        }
+
+        function playAlarm() {
+            const soundType = localStorage.getItem('soundType') || 'beep';
+            
+            if (soundType === 'silent') return; // No reproducir sonido si está en silencio
+            
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                switch(soundType) {
+                    case 'beep':
+                        playBeep(audioContext);
+                        break;
+                    case 'bell':
+                        playBell(audioContext);
+                        break;
+                    case 'chime':
+                        playChime(audioContext);
+                        break;
+                    case 'alert':
+                        playAlertSound(audioContext);
+                        break;
+                    default:
+                        playBeep(audioContext);
+                }
+            } catch (e) {
+                console.log('Error al reproducir alarma:', e);
+            }
+        }
+
+        function playBeep(audioContext) {
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                }, i * 600);
+            }
+        }
+
+        function playBell(audioContext) {
+            for (let i = 0; i < 2; i++) {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 523 + (i * 130);
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.8);
+                }, i * 500);
+            }
+        }
+
+        function playChime(audioContext) {
+            const frequencies = [523, 659, 784, 523]; // Do, Mi, Sol, Do
+            for (let i = 0; i < frequencies.length; i++) {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = frequencies[i];
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.4);
+                }, i * 200);
+            }
+        }
+
+        function playAlertSound(audioContext) {
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = i % 2 === 0 ? 1000 : 600;
+                    oscillator.type = 'square';
+                    
+                    gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                }, i * 350);
+            }
+        }
+
+        function testCurrentSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const soundType = document.querySelector('input[name="soundType"]:checked').value;
+                
+                if (soundType === 'silent') {
+                    alert('Sonido desactivado');
+                    return;
+                }
+                
+                switch(soundType) {
+                    case 'beep':
+                        playBeep(audioContext);
+                        break;
+                    case 'bell':
+                        playBell(audioContext);
+                        break;
+                    case 'chime':
+                        playChime(audioContext);
+                        break;
+                    case 'alert':
+                        playAlertSound(audioContext);
+                        break;
+                }
+            } catch (e) {
+                console.log('Error al probar sonido:', e);
+            }
+        }
+
+        function playSoundShort() {
+            const soundType = localStorage.getItem('soundType') || 'beep';
+            
+            if (soundType === 'silent') return;
+            
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                switch(soundType) {
+                    case 'beep':
+                        playBeepShort(audioContext);
+                        break;
+                    case 'bell':
+                        playBellShort(audioContext);
+                        break;
+                    case 'chime':
+                        playChimeShort(audioContext);
+                        break;
+                    case 'alert':
+                        playAlertSoundShort(audioContext);
+                        break;
+                    default:
+                        playBeepShort(audioContext);
+                }
+            } catch (e) {
+                console.log('Error al reproducir sonido corto:', e);
+            }
+        }
+
+        function playBeepShort(audioContext) {
+            for (let i = 0; i < 2; i++) {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                }, i * 300);
+            }
+        }
+
+        function playBellShort(audioContext) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 523;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.6);
+        }
+
+        function playChimeShort(audioContext) {
+            const frequencies = [523, 659];
+            for (let i = 0; i < frequencies.length; i++) {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = frequencies[i];
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                }, i * 200);
+            }
+        }
+
+        function playAlertSoundShort(audioContext) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 1000;
+            oscillator.type = 'square';
+            
+            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        // FUNCIONES DE EXAMEN
+        function switchTab(tab) {
+            const timerTabEl = document.getElementById('timerTab');
+            const examTabEl = document.getElementById('examTab');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+
+            if (tab === 'timer') {
+                timerTabEl.classList.add('active');
+                examTabEl.classList.remove('active');
+                tabBtns[0].classList.add('active');
+            } else {
+                examTabEl.classList.add('active');
+                timerTabEl.classList.remove('active');
+                tabBtns[1].classList.add('active');
+            }
+
+            // Guardar la pestaña activa en localStorage
+            localStorage.setItem('activeTab', tab);
+        }
+
+        function restoreActiveTab() {
+            // Usar setTimeout para asegurar que el DOM está completamente cargado
+            setTimeout(function() {
+                const savedTab = localStorage.getItem('activeTab');
+                console.log('Pestaña guardada:', savedTab); // Debug
+                if (savedTab === 'exam') {
+                    const examTabEl = document.getElementById('examTab');
+                    const timerTabEl = document.getElementById('timerTab');
+                    const tabBtns = document.querySelectorAll('.tab-btn');
+                    
+                    tabBtns.forEach(btn => btn.classList.remove('active'));
+                    examTabEl.classList.add('active');
+                    timerTabEl.classList.remove('active');
+                    tabBtns[1].classList.add('active');
+                } else if (savedTab === 'timer') {
+                    const timerTabEl = document.getElementById('timerTab');
+                    const examTabEl = document.getElementById('examTab');
+                    const tabBtns = document.querySelectorAll('.tab-btn');
+                    
+                    tabBtns.forEach(btn => btn.classList.remove('active'));
+                    timerTabEl.classList.add('active');
+                    examTabEl.classList.remove('active');
+                    tabBtns[0].classList.add('active');
+                }
+            }, 10);
+        }
+
+        function addTask() {
+            const newIndex = examTasks.length;
+            examTasks.push({ name: `Task ${newIndex + 1}`, minutes: 0, seconds: 0 });
+
+            const taskItem = document.createElement('div');
+            taskItem.className = 'task-item';
+            taskItem.innerHTML = `
+                <div class="task-input-group">
+                    <input type="text" class="task-name" placeholder="Nombre de la task" value="Task ${newIndex + 1}">
+                    <div class="time-inputs">
+                        <div class="time-input">
+                            <label>Min</label>
+                            <input type="number" class="task-minutes" min="0" max="99" value="0">
+                        </div>
+                        <div class="time-input">
+                            <label>Seg</label>
+                            <input type="number" class="task-seconds" min="0" max="59" value="0">
+                        </div>
+                    </div>
+                    <button class="btn-delete-task" onclick="deleteTask(${newIndex})">✕</button>
+                </div>
+            `;
+
+            examTasks_div.appendChild(taskItem);
+        }
+
+        function deleteTask(index) {
+            if (examTasks.length <= 1) {
+                alert('Debes tener al menos una task');
+                return;
+            }
+
+            examTasks.splice(index, 1);
+            const tasks = document.querySelectorAll('.task-item');
+            tasks[index].remove();
+        }
+
+        function updateExamTasksFromUI() {
+            const taskItems = document.querySelectorAll('.task-item');
+            examTasks = [];
+            taskItems.forEach((item, index) => {
+                const name = item.querySelector('.task-name').value || `Task ${index + 1}`;
+                const minutes = parseInt(item.querySelector('.task-minutes').value) || 0;
+                const seconds = parseInt(item.querySelector('.task-seconds').value) || 0;
+                examTasks.push({ name, minutes, seconds });
+            });
+        }
+
+        function saveExamConfig() {
+            updateExamTasksFromUI();
+            const title = examTitle.value.trim();
+
+            if (!title) {
+                alert('Por favor ingresa un título para el examen');
+                return;
+            }
+
+            if (examTasks.length === 0 || examTasks.every(t => t.minutes === 0 && t.seconds === 0)) {
+                alert('Por favor configura al menos una task con tiempo');
+                return;
+            }
+
+            const config = {
+                title,
+                tasks: JSON.parse(JSON.stringify(examTasks))
+            };
+
+            let savedConfigs = JSON.parse(localStorage.getItem('examConfigs') || '[]');
+            
+            // Verificar si ya existe una configuración con ese nombre
+            const existingIndex = savedConfigs.findIndex(cfg => cfg.title === title);
+            if (existingIndex >= 0) {
+                if (confirm(`¿Deseas actualizar la configuración de "${title}"?`)) {
+                    savedConfigs[existingIndex] = config;
+                } else {
+                    return;
+                }
+            } else {
+                savedConfigs.push(config);
+            }
+
+            localStorage.setItem('examConfigs', JSON.stringify(savedConfigs));
+            alert('Configuración guardada correctamente');
+        }
+
+        function showLoadOptions() {
+            const loadDiv = document.getElementById('loadOptionsDiv');
+            const savedConfigs = JSON.parse(localStorage.getItem('examConfigs') || '[]');
+
+            if (savedConfigs.length === 0) {
+                alert('No hay configuraciones guardadas');
+                return;
+            }
+
+            loadDiv.style.display = 'block';
+            const savedConfigsDiv = document.getElementById('savedConfigs');
+            savedConfigsDiv.innerHTML = '';
+
+            savedConfigs.forEach((config, index) => {
+                const configItem = document.createElement('div');
+                configItem.className = 'config-item';
+                configItem.innerHTML = `
+                    <div><strong>${config.title}</strong> (${config.tasks.length} tasks)</div>
+                    <div>
+                        <button onclick="loadExamConfig(${index})">Cargar</button>
+                        <button class="delete-config" onclick="deleteExamConfig(${index})">Eliminar</button>
+                    </div>
+                `;
+                savedConfigsDiv.appendChild(configItem);
+            });
+        }
+
+        function loadExamConfig(index) {
+            const savedConfigs = JSON.parse(localStorage.getItem('examConfigs') || '[]');
+            const config = savedConfigs[index];
+
+            examTitle.value = config.title;
+            examTasks = JSON.parse(JSON.stringify(config.tasks));
+
+            examTasks_div.innerHTML = '';
+            examTasks.forEach((task, idx) => {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+                taskItem.innerHTML = `
+                    <div class="task-input-group">
+                        <input type="text" class="task-name" placeholder="Nombre de la task" value="${task.name}">
+                        <div class="time-inputs">
+                            <div class="time-input">
+                                <label>Min</label>
+                                <input type="number" class="task-minutes" min="0" max="99" value="${task.minutes}">
+                            </div>
+                            <div class="time-input">
+                                <label>Seg</label>
+                                <input type="number" class="task-seconds" min="0" max="59" value="${task.seconds}">
+                            </div>
+                        </div>
+                        <button class="btn-delete-task" onclick="deleteTask(${idx})">✕</button>
+                    </div>
+                `;
+                examTasks_div.appendChild(taskItem);
+            });
+
+            document.getElementById('loadOptionsDiv').style.display = 'none';
+            alert('Configuración cargada correctamente');
+        }
+
+        function deleteExamConfig(index) {
+            if (confirm('¿Deseas eliminar esta configuración?')) {
+                let savedConfigs = JSON.parse(localStorage.getItem('examConfigs') || '[]');
+                savedConfigs.splice(index, 1);
+                localStorage.setItem('examConfigs', JSON.stringify(savedConfigs));
+                showLoadOptions();
+            }
+        }
+
+        function initializeExamProgress() {
+            const examProgress = document.getElementById('examProgress');
+            const examProgressTasks = document.getElementById('examProgressTasks');
+            
+            examProgressTasks.innerHTML = '';
+            examTasks.forEach((task, index) => {
+                const taskProgress = document.createElement('div');
+                taskProgress.className = 'progress-task';
+                taskProgress.id = `progressTask${index}`;
+                const totalSeconds = task.minutes * 60 + task.seconds;
+                
+                taskProgress.innerHTML = `
+                    <div class="progress-task-header">
+                        <div class="progress-task-name">${task.name}</div>
+                        <div class="progress-task-time" id="progressTime${index}">${formatTime(totalSeconds)}</div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progressBar${index}" style="width: 100%;"></div>
+                    </div>
+                `;
+                examProgressTasks.appendChild(taskProgress);
+            });
+            
+            examProgress.classList.add('active');
+        }
+
+        function updateExamProgress() {
+            const task = examTasks[currentExamTaskIndex];
+            const totalSeconds = task.minutes * 60 + task.seconds;
+            const progressPercentage = (remainingSeconds / totalSeconds) * 100;
+            
+            // Actualizar la barra de la tarea actual
+            const progressBar = document.getElementById(`progressBar${currentExamTaskIndex}`);
+            const progressTime = document.getElementById(`progressTime${currentExamTaskIndex}`);
+            const progressTask = document.getElementById(`progressTask${currentExamTaskIndex}`);
+            
+            if (progressBar) {
+                progressBar.style.width = Math.max(0, progressPercentage) + '%';
+            }
+            if (progressTime) {
+                progressTime.textContent = formatTime(remainingSeconds);
+            }
+            
+            // Marcar la tarea actual
+            document.querySelectorAll('.progress-task').forEach((el, idx) => {
+                if (idx === currentExamTaskIndex) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+        }
+
+        function startExam() {
+            updateExamTasksFromUI();
+
+            if (examTasks.length === 0) {
+                examStatus.textContent = '⚠️ Por favor agrega al menos una task';
+                examStatus.style.color = '#e74c3c';
+                return;
+            }
+
+            const hasValidTask = examTasks.some(t => t.minutes > 0 || t.seconds > 0);
+            if (!hasValidTask) {
+                examStatus.textContent = '⚠️ Configura una duración válida para al menos una task';
+                examStatus.style.color = '#e74c3c';
+                return;
+            }
+
+            examRunning = true;
+            currentExamTaskIndex = -1;
+            examIsPaused = false;
+            startExamBtn.disabled = true;
+            pauseExamBtn.disabled = false;
+            resetExamBtn.disabled = false;
+            examTasks_div.style.display = 'none';
+            document.querySelector('.exam-actions').style.display = 'none';
+
+            // Mostrar barra de progreso
+            initializeExamProgress();
+
+            startNextExamTask();
+        }
+
+        function startNextExamTask() {
+            currentExamTaskIndex++;
+
+            if (currentExamTaskIndex >= examTasks.length) {
+                examFinished();
+                return;
+            }
+
+            const task = examTasks[currentExamTaskIndex];
+            const totalSeconds = task.minutes * 60 + task.seconds;
+
+            if (totalSeconds === 0) {
+                startNextExamTask();
+                return;
+            }
+
+            remainingSeconds = totalSeconds;
+            examStatus.textContent = `📚 ${task.name} (${currentExamTaskIndex + 1}/${examTasks.length})`;
+            examStatus.style.color = '#3498db';
+            timerDisplay.textContent = formatTime(remainingSeconds);
+            updateExamProgress();
+
+            timerInterval = setInterval(() => {
+                remainingSeconds--;
+                timerDisplay.textContent = formatTime(remainingSeconds);
+                updateExamProgress();
+
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    playAlarm();
+                    setTimeout(() => {
+                        startNextExamTask();
+                    }, 1500);
+                }
+            }, 1000);
+        }
+
+        function pauseExam() {
+            if (examRunning) {
+                clearInterval(timerInterval);
+                examRunning = false;
+                examIsPaused = true;
+                pauseExamBtn.textContent = 'Reanudar';
+                examStatus.textContent = '⏸️ Pausado';
+                examStatus.style.color = '#f39c12';
+            } else {
+                examRunning = true;
+                examIsPaused = false;
+                pauseExamBtn.textContent = 'Pausar';
+                examStatus.textContent = `📚 ${examTasks[currentExamTaskIndex].name}`;
+                examStatus.style.color = '#3498db';
+
+                timerInterval = setInterval(() => {
+                    remainingSeconds--;
+                    timerDisplay.textContent = formatTime(remainingSeconds);
+                    updateExamProgress();
+
+                    if (remainingSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        playAlarm();
+                        setTimeout(() => {
+                            startNextExamTask();
+                        }, 1500);
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetExam() {
+            clearInterval(timerInterval);
+            examRunning = false;
+            currentExamTaskIndex = -1;
+            startExamBtn.disabled = false;
+            pauseExamBtn.disabled = true;
+            resetExamBtn.disabled = true;
+            pauseExamBtn.textContent = 'Pausar';
+            examTasks_div.style.display = 'block';
+            document.querySelector('.exam-actions').style.display = 'flex';
+            examStatus.textContent = '';
+            timerDisplay.textContent = '00:00';
+            document.getElementById('loadOptionsDiv').style.display = 'none';
+            document.getElementById('examProgress').classList.remove('active');
+        }
+
+        function examFinished() {
+            clearInterval(timerInterval);
+            examRunning = false;
+            examStatus.textContent = '✅ ¡Examen completado!';
+            examStatus.classList.add('finished');
+            startExamBtn.disabled = false;
+            pauseExamBtn.disabled = true;
+            resetExamBtn.disabled = false;
+            pauseExamBtn.textContent = 'Pausar';
+            examTasks_div.style.display = 'block';
+            document.querySelector('.exam-actions').style.display = 'flex';
+            document.getElementById('examProgress').classList.remove('active');
+            playAlarm();
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // Inicialización de sonidos
+        function initSoundSettings() {
+            const soundType = localStorage.getItem('soundType') || 'beep';
+            const soundRadio = document.querySelector(`input[name="soundType"][value="${soundType}"]`);
+            if (soundRadio) {
+                soundRadio.checked = true;
+            }
+            
+            // Event listener para cambios de sonido
+            document.querySelectorAll('input[name="soundType"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    localStorage.setItem('soundType', e.target.value);
+                });
+            });
+        }
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark ? 'true' : 'false');
+            document.querySelector('.dark-mode-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        function initDarkMode() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.dark-mode-toggle').textContent = '☀️';
+            }
+        }
+
+        pauseTime = (parseInt(pauseMinutesInput.value) || 0) * 60 + (parseInt(pauseSecondsInput.value) || 0);
+        updateDeleteButtons();
+        updateTimerValues();
+        updateDisplay();
+        restoreActiveTab();
+        initSoundSettings();
+        initDarkMode();
