@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timer Pomodoro</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
         * {
             margin: 0;
@@ -37,7 +38,8 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            /* red background for light mode */
+            background: linear-gradient(135deg, #ef4444 0%, #be123c 100%);
             transition: background 0.3s ease;
         }
 
@@ -52,28 +54,6 @@
             margin: 20px;
             transition: all 0.3s ease;
             position: relative;
-        }
-
-        .dark-mode-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            cursor: pointer;
-            font-size: 1.5em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .dark-mode-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px var(--shadow-color);
         }
 
         .dark-mode-toggle {
@@ -191,12 +171,6 @@
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        
-        .time-input input:focus {
-            outline: none;
-            border-color: #1a1a1a;
-            box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
         }
 
         button {
@@ -845,7 +819,10 @@
 </head>
 <body>
     <div class="container">
-        <button class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</button>
+        <!-- toggle between light and dark themes -->
+        <button class="dark-mode-toggle" onclick="handleModeButton()" title="Cambiar modo oscuro">🌙</button>
+        <!-- extra button to cycle background color -->
+        <button class="bg-color-toggle" onclick="toggleBgColor()" title="Cambiar color de fondo">🎨</button>
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('timer')">⏲️ Timer</button>
             <button class="tab-btn" onclick="switchTab('exam')">📝 Examen</button>
@@ -879,6 +856,11 @@
                             <input type="number" id="pauseSeconds" min="0" max="59" value="5">
                         </div>
                     </div>
+                </div>
+                <!-- dark mode toggle located in configuration -->
+                <div class="config-group">
+                    <label for="darkModeCheckbox">Modo oscuro</label>
+                    <input type="checkbox" id="darkModeCheckbox">
                 </div>
             </div>
 
@@ -2183,14 +2165,39 @@
             const isDark = document.body.classList.contains('dark-mode');
             localStorage.setItem('darkMode', isDark ? 'true' : 'false');
             document.querySelector('.dark-mode-toggle').textContent = isDark ? '☀️' : '🌙';
+            // keep checkbox in sync
+            const darkCheckbox = document.getElementById('darkModeCheckbox');
+            if (darkCheckbox) darkCheckbox.checked = isDark;
         }
 
         function initDarkMode() {
             const isDark = localStorage.getItem('darkMode') === 'true';
+            const darkCheckbox = document.getElementById('darkModeCheckbox');
             if (isDark) {
                 document.body.classList.add('dark-mode');
                 document.querySelector('.dark-mode-toggle').textContent = '☀️';
             }
+            if (darkCheckbox) darkCheckbox.checked = isDark;
+            // listen for user changes in settings
+            if (darkCheckbox) {
+                darkCheckbox.addEventListener('change', () => {
+                    // user toggled from config panel
+                    toggleDarkMode();
+                });
+            }
+        }
+
+        // handle mode button click (added wrapper for future extension)
+        function handleModeButton() {
+            toggleDarkMode();
+        }
+
+        // background color cycle
+        const bgColors = ['#ef4444', '#3b82f6', '#10b981', '#a855f7'];
+        let bgIndex = 0;
+        function toggleBgColor() {
+            bgIndex = (bgIndex + 1) % bgColors.length;
+            document.body.style.background = bgColors[bgIndex];
         }
 
         pauseTime = (parseInt(pauseMinutesInput.value) || 0) * 60 + (parseInt(pauseSecondsInput.value) || 0);
@@ -2200,3 +2207,8 @@
         restoreActiveTab();
         initSoundSettings();
         initDarkMode();
+        
+        // ensure script properly closed
+    </script>
+</body>
+</html>
